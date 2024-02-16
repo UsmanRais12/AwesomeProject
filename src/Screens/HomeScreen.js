@@ -1,120 +1,91 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, Pressable, Share } from 'react-native';
-import { FlatList } from "react-native-gesture-handler";
-import Clipboard from '@react-native-clipboard/clipboard';
-
+import React, { useState } from 'react';
+import { View, StyleSheet, Pressable, Image, Keyboard } from 'react-native';
+import Header from '../Components/Header';
+import Home from './tabs/Home';
+import Search from './tabs/Search';
+import Notification from './tabs/Notification';
+import Wishlist from './tabs/Wishlist';
+import User from './tabs/User';
+import { useEffect } from 'react';
 const HomeScreen = () => {
-    const [data, setData] = useState([]);
-
+    const [selectedTab, setSelectedTab] = useState(0)
+    const [keyboardVisible , setKeyboardVisible] = useState(false);
     useEffect(() => {
-        getQuotes();
-    }, []);
-
-    const getQuotes = async () => {
-        const response = await fetch('https://type.fit/api/quotes');
-        const result = await response.json();
-        console.log(result)
-        setData(result);
-    }
-
-    const handleShare = (text) => {
-        Share.share({
-            message: text,
-        });
-    }
-
+        const keyboardDidShowListener = Keyboard.addListener(
+          'keyboardDidShow', 
+          () => {
+            setKeyboardVisible(true); 
+          }
+        );
+      
+        const keyboardDidHideListener = Keyboard.addListener(
+          'keyboardDidHide',
+          () => {
+            setKeyboardVisible(false); 
+          }
+        );
+      
+        return () => {
+          keyboardDidHideListener.remove();
+          keyboardDidShowListener.remove();
+        };
+      }, []);
+      
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.quotes}>Quotes</Text>
-                <Text style={styles.hub}>Hub</Text>
+            {selectedTab === 0 ? (<Home />) :
+                selectedTab === 1 ? (<Search />) :
+                    selectedTab === 2 ? (<Notification />) :
+                        selectedTab === 3 ? (<Wishlist />) :
+                            (<User />)}
+
+           {!keyboardVisible &&(
+             <View style={styles.bottomView}>
+                 <Pressable style={styles.bottomTab} onPress={() => { setSelectedTab(0) }}>
+                    <Image source={selectedTab==0 ? require('../Images/homefill.png'):require('../Images/home.png')} style={styles.bottomIcon} />
+                </Pressable>
+                <Pressable style={styles.bottomTab} onPress={() => { setSelectedTab(1) }}>
+                    <Image source={require('../Images/search.png')} style={styles.bottomIcon} />
+                </Pressable>
+                <Pressable style={styles.bottomTab} onPress={() => { setSelectedTab(2) }}>
+                    <Image source={selectedTab==2 ? require('../Images/notificationf.png'):require('../Images/notification.png')} style={styles.bottomIcon} />
+                </Pressable>
+                <Pressable style={styles.bottomTab} onPress={() => { setSelectedTab(3) }}>
+                    <Image source={selectedTab==3 ? require('../Images/wishlistf.png'):require('../Images/wishlist.png')} style={styles.bottomIcon} />
+                </Pressable>
+                <Pressable style={styles.bottomTab} onPress={() => { setSelectedTab(4) }}>
+                    <Image source={selectedTab==4 ? require('../Images/profilef.png') : require('../Images/profile.png')} style={styles.bottomIcon} />
+                </Pressable>
             </View>
-            <View>
-                <FlatList data={data} renderItem={({ item, index }) => {
-                    return (
-                        <View style={styles.quoteItem}>
-                            <Image source={require('../Images/open.png')} style={[styles.openImage, { marginLeft: 10 }]} />
-                            <Text style={[styles.quoteText, { color: 'black' }]}>{item.text}</Text>
-                            <Text style={[styles.quoteText, { alignSelf: 'flex-end', color: 'red' }]}>{'~' + item.author}</Text>
-                            <Image source={require('../Images/close.png')} style={[styles.openImage, { marginRight: 10, alignSelf: 'flex-end', tintColor: 'red' }]} />
-                            <View style={styles.quoteBottomView}>
-                                <Pressable style={({ pressed }) => [styles.button, pressed && styles.pressed]} onPress={() => { Clipboard.setString(item.text + '\n' + '~' + item.author) }}>
-                                    <Image source={require('../Images/copy.png')} style={styles.buttonIcon} />
-                                </Pressable>
-                                <Pressable style={({ pressed }) => [styles.button, pressed && styles.pressed]} onPress={() => { handleShare(item.text) }}>
-                                    <Image source={require('../Images/share.png')} style={styles.buttonIcon} />
-                                </Pressable>
-                            </View>
-                        </View>
-                    )
-                }} />
-            </View>
+           )}
+               
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
+    bottomView: {
+        position: 'absolute',
+        bottom: 0,
         width: '100%',
-        height: 60,
+        height: 70,
         flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        backgroundColor: '#fff'
+    },
+    bottomTab: {
+        width: '20%',
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 2,
     },
-    quotes: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: 'black'
-    },
-    hub: {
-        fontSize: 20,
-        color: 'red'
-    },
-    quoteItem: {
-        width: '90%',
-        borderRadius: 10,
-        alignSelf: 'center',
-        marginVertical: 20,
-        elevation: 1,
-        backgroundColor: 'white',
-        paddingBottom: 5,
-    },
-    openImage: {
-        height: 20,
-        width: 20,
-        marginTop: 10,
-    },
-    quoteText: {
-        margin: 10,
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    quoteBottomView: {
-        height: 40,
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: "space-evenly",
-        alignItems: 'center'
-    },
-    button: {
-        backgroundColor: '#e6e6e6',
-        width: '40%',
-        height: 40,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    buttonIcon: {
-        width: 25,
-        height: 25,
-    },
-    pressed: {
-        opacity: 0.7
+    bottomIcon: {
+        width: 24,
+        height: 24
     }
-});
-
+})
 export default HomeScreen;
