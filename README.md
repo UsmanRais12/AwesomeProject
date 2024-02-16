@@ -1,6 +1,4 @@
-Its a Beginners react Native project.Its features includes :
- Fetching data from API 
- Setting up React Navigation
- Adding Copy functionality 
- Adding open share functionality 
- Designing Basic corousel
+First e-commerce app with react native features i used
+fetched products from API.
+Use react-navigation.
+Use redux for products , cart , Address , Wishlist
